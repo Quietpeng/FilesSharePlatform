@@ -1,0 +1,27 @@
+{
+    "server": {
+        "host": "0.0.0.0",
+        "port": 5000,
+        "debug": true
+    },
+    "file_limits": {
+        "max_file_size_mb": 16384,
+        "max_group_size_mb": 32768,
+        "max_files_per_group": 100,
+        "total_storage_limit_gb": 100
+    },
+    "time_limits": {
+        "min_expiry_minutes": 1,
+        "max_expiry_days": 10,
+        "default_expiry_minutes": 10
+    },
+    "pickup_code": {
+        "length_min": 6,
+        "length_max": 10,
+        "default_length": 6
+    },
+    "security": {
+        "allowed_extensions": ["txt", "pdf", "png", "jpg", "jpeg", "gif", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "rar", "7z", "mp3", "mp4", "avi", "mov"],
+        "forbidden_extensions": ["php", "exe", "bat", "cmd", "sh", "js", "vbs", "py"]
+    }
+}

@@ -20,10 +20,9 @@
                 <div class="info-row">
                     <span class="info-label">创建时间：</span>
                     <span class="info-value">{{ file_group.created_at[:16].replace('T', ' ') }}</span>
-                </div>
-                <div class="info-row">
+                </div>                <div class="info-row">
                     <span class="info-label">过期时间：</span>
-                    <span class="info-value">{{ file_group.expiry_date[:16].replace('T', ' ') if file_group.expiry_date else '永不过期' }}</span>
+                    <span class="info-value">{{ file_group.expiry_date[:19].replace('T', ' ') if file_group.expiry_date else '永不过期' }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">下载限制：</span>
@@ -86,11 +85,23 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-            
-            <div class="manage-actions">
+            </div>            <div class="manage-actions">
+                <button id="refresh-page" class="btn primary-btn" data-id="{{ file_group_id }}">
+                    <span class="icon">🔄</span> 刷新数据
+                </button>
+                <div class="auto-refresh-container">
+                    <input type="checkbox" id="auto-refresh" name="auto-refresh">
+                    <label for="auto-refresh">自动刷新 (每分钟)</label>
+                </div>
                 <button id="delete-files" class="btn danger-btn" data-id="{{ file_group_id }}">删除此文件组</button>
                 <a href="/" class="btn secondary-btn">返回主页</a>
+            </div>
+            <div id="refresh-status" class="refresh-status">
+                <span class="last-update">上次更新: <span id="last-update-time">刚刚</span></span>
+                <div id="refresh-spinner" class="refresh-spinner hide"></div>
+            </div>
+            <div class="refresh-note info-text">
+                注意: 自动刷新只在此页面打开时生效，不会影响下载过程。
             </div>
         </div>
     </div>

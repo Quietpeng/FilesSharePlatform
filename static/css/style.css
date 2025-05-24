@@ -134,6 +134,22 @@ a:hover {
     font-size: 16px;
 }
 
+.expiry-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.expiry-number {
+    flex: 0 0 80px;
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--light-text);
+    margin-top: 5px;
+}
+
 .form-actions {
     display: flex;
     justify-content: space-between;
@@ -549,8 +565,59 @@ footer {
         flex-direction: column;
         gap: 10px;
     }
-    
-    .manage-actions .btn {
+      .manage-actions .btn {
         width: 100%;
     }
+}
+
+/* 刷新功能样式 */
+.auto-refresh-container {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.auto-refresh-container input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.refresh-status {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--lighter-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.refresh-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.icon {
+    margin-right: 5px;
+}
+
+.refresh-note {
+    font-style: italic;
+}
+
+.info-text {
+    color: var(--lighter-text);
+    font-size: 0.9em;
+    text-align: center;
+    margin-top: 10px;
 }

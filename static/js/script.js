@@ -19,8 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
-    
-    // 上传页面初始化
+      // 上传页面初始化
     function initUploadPage() {
         const fileInput = document.getElementById('file-upload');
         const fileList = document.getElementById('file-list');
@@ -33,8 +32,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const managementUrlElement = document.getElementById('management-url');
         const copyButton = document.getElementById('copy-code');
         const resetButton = document.getElementById('reset-upload');
+        const expiryValueInput = document.getElementById('expiry-value');
+        const expiryUnitSelect = document.getElementById('expiry-unit');
         
         let selectedFiles = [];
+        
+        // 设置有效期输入限制
+        if (expiryValueInput && expiryUnitSelect) {
+            expiryUnitSelect.addEventListener('change', function() {
+                const unit = this.value;
+                if (unit === 'minutes') {
+                    expiryValueInput.setAttribute('max', '1440'); // 最多24小时 = 1440分钟
+                    if (parseInt(expiryValueInput.value) > 1440) {
+                        expiryValueInput.value = 1440;
+                    }
+                } else if (unit === 'hours') {
+                    expiryValueInput.setAttribute('max', '240'); // 最多10天 = 240小时
+                    if (parseInt(expiryValueInput.value) > 240) {
+                        expiryValueInput.value = 240;
+                    }
+                } else if (unit === 'days') {
+                    expiryValueInput.setAttribute('max', '10'); // 最多10天
+                    if (parseInt(expiryValueInput.value) > 10) {
+                        expiryValueInput.value = 10;
+                    }
+                }
+            });
+            
+            // 确保初始值在范围内
+            expiryUnitSelect.dispatchEvent(new Event('change'));
+        }
         
         // 文件选择事件
         fileInput.addEventListener('change', function(e) {
@@ -99,9 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedFiles.forEach(file => {
                 formData.append('files[]', file);
             });
-            
-            // 添加其他表单数据
-            formData.append('expiry_days', document.getElementById('expiry-days').value);
+              // 添加其他表单数据
+            formData.append('expiry_value', document.getElementById('expiry-value').value);
+            formData.append('expiry_unit', document.getElementById('expiry-unit').value);
             formData.append('max_downloads', document.getElementById('max-downloads').value);
             
             // 显示上传进度条
@@ -118,18 +145,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     progressText.textContent = '上传中 (' + percentComplete + '%)';
                 }
             });
-            
-            xhr.addEventListener('load', function() {
+              xhr.addEventListener('load', function() {
                 uploadProgress.classList.add('hide');
-                
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    
-                    // 显示上传结果
-                    pickupCodeElement.textContent = response.pickup_code;
-                    managementUrlElement.textContent = response.management_url;
-                    managementUrlElement.href = response.management_url;
-                    uploadResult.classList.remove('hide');
+                  if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        // 显示上传结果
+                        pickupCodeElement.textContent = response.pickup_code;
+                        
+                        // 使用相对URL而非绝对URL
+                        const managementUrl = `/manage/${response.file_group_id}`;
+                        managementUrlElement.textContent = '管理链接';
+                        managementUrlElement.href = managementUrl;
+                        uploadResult.classList.remove('hide');
+                    } catch (e) {
+                        alert('解析响应错误: ' + e.message);
+                        alert('上传成功，但返回数据解析失败。请刷新页面重试。');
+                        uploadForm.classList.remove('hide');
+                    }
                 } else {
                     let errorMessage = '上传失败';
                     
@@ -137,9 +171,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         const response = JSON.parse(xhr.responseText);
                         if (response.error) {
                             errorMessage = response.error;
+                        }                    } catch (e) {
+                        // 如果服务器返回HTML，可能是由于服务器错误或413文件过大
+                        if (xhr.status === 413) {
+                            errorMessage = '文件太大，超出服务器限制';
+                        } else if (xhr.responseText.includes('html')) {
+                            errorMessage = '服务器错误，请联系管理员';
+                        } else {
+                            errorMessage = '解析响应错误: ' + e.message;
                         }
-                    } catch (e) {
-                        console.error('解析响应错误', e);
                     }
                     
                     alert(errorMessage);
@@ -219,7 +259,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         // 保存文件组ID和下载令牌
@@ -233,11 +278,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         filesContainer.classList.remove('hide');
                     } else {
                         alert(data.error || '取件码无效');
-                    }
-                })
+                    }                })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('请求失败，请稍后重试');
+                    if (error.message && error.message.includes('413')) {
+                        alert('文件太大，超过服务器限制');
+                    } else {
+                        alert('请求失败: ' + error.message);
+                    }
                 });
             });
         }
@@ -282,6 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileList.appendChild(fileItem);
             });
         }
+          // 存储下载状态
+        const downloadStatus = {};
         
         // 开始下载文件
         function startDownload(fileName) {
@@ -289,9 +338,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('下载信息无效，请重新获取');
                 return;
             }
+              // 防止重复下载
+            if (downloadStatus[fileName]) {
+                alert(`文件 ${fileName} 正在下载中，请等待下载完成`);
+                return;
+            }
+            
+            // 记录下载状态
+            downloadStatus[fileName] = true;
             
             const downloadUrl = `/download/${fileGroupId}/${fileName}?token=${downloadToken}`;
-            window.open(downloadUrl, '_blank');
+            
+            // 创建下载链接
+            const downloadLink = document.createElement('a');
+            downloadLink.href = downloadUrl;
+            downloadLink.setAttribute('download', fileName);
+            downloadLink.setAttribute('target', '_blank');
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            
+            // 点击链接开始下载
+            downloadLink.click();
+            
+            // 延迟移除链接
+            setTimeout(() => {
+                document.body.removeChild(downloadLink);
+                // 3分钟后才允许再次下载相同文件，防止重复请求
+                setTimeout(() => {
+                    downloadStatus[fileName] = false;
+                }, 180000);
+            }, 100);
         }
         
         // 下载全部文件
@@ -321,25 +397,154 @@ document.addEventListener('DOMContentLoaded', function() {
                     startDownload(file.name);
                     index++;
                     
-                    // 延迟下载下一个文件
-                    setTimeout(downloadNext, 1000);
+                    // 延迟下载下一个文件，增加间隔到5秒，避免浏览器限制
+                    setTimeout(downloadNext, 5000);
                 }
                 
                 downloadNext();
             });
         }
     }
-    
-    // 管理页面初始化
+      // 管理页面初始化
     function initManagePage() {
         const deleteButton = document.getElementById('delete-files');
         const confirmModal = document.getElementById('confirm-modal');
         const confirmDeleteButton = document.getElementById('confirm-delete');
         const cancelDeleteButton = document.getElementById('cancel-delete');
+        const refreshButton = document.getElementById('refresh-page');
+        const autoRefreshCheckbox = document.getElementById('auto-refresh');
+        const lastUpdateTime = document.getElementById('last-update-time');
+        const refreshSpinner = document.getElementById('refresh-spinner');
         
         if (!deleteButton) return;
         
         let fileGroupId = deleteButton.dataset.id;
+        let autoRefreshInterval = null;
+        
+        // 更新页面上次刷新时间
+        function updateLastRefreshTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            lastUpdateTime.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // 刷新页面数据
+        function refreshPageData() {
+            if (refreshSpinner) refreshSpinner.classList.remove('hide');
+              fetch(`/api/file-group/${fileGroupId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.file_group) {
+                        updatePageWithNewData(data.file_group);
+                        updateLastRefreshTime();
+                    } else {
+                        alert('获取数据失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    alert('刷新数据出错: ' + error.message);
+                })
+                .finally(() => {
+                    if (refreshSpinner) refreshSpinner.classList.add('hide');
+                });
+        }
+        
+        // 用新数据更新页面
+        function updatePageWithNewData(fileGroup) {
+            // 更新文件组信息
+            document.querySelector('.info-value.code').textContent = fileGroup.pickup_code;
+            
+            // 更新下载次数
+            const downloadCountElement = document.querySelectorAll('.info-value')[4];  // 第五个info-value元素
+            if (downloadCountElement) {
+                downloadCountElement.textContent = fileGroup.download_count;
+            }
+            
+            // 更新下载历史
+            const historyTableBody = document.querySelector('.history-panel .file-table tbody');
+            if (historyTableBody) {
+                // 清空现有表格内容
+                historyTableBody.innerHTML = '';
+                
+                if (fileGroup.download_history && fileGroup.download_history.length > 0) {
+                    fileGroup.download_history.forEach(download => {
+                        const row = document.createElement('tr');
+                        
+                        const nameCell = document.createElement('td');
+                        nameCell.textContent = download.filename;
+                        
+                        const timeCell = document.createElement('td');
+                        timeCell.textContent = download.time.replace('T', ' ').substring(0, 16);
+                        
+                        const ipCell = document.createElement('td');
+                        ipCell.textContent = download.ip;
+                        
+                        row.appendChild(nameCell);
+                        row.appendChild(timeCell);
+                        row.appendChild(ipCell);
+                        
+                        historyTableBody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.textContent = '暂无下载记录';
+                    cell.className = 'no-data';
+                    cell.setAttribute('colspan', '3');
+                    row.appendChild(cell);
+                    historyTableBody.appendChild(row);
+                }
+            }
+        }
+        
+        // 手动刷新按钮
+        if (refreshButton) {
+            refreshButton.addEventListener('click', function() {
+                refreshPageData();
+            });
+        }
+          // 自动刷新切换
+        if (autoRefreshCheckbox) {
+            autoRefreshCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // 开启自动刷新（增加到60秒一次，减少服务器负载）
+                    autoRefreshInterval = setInterval(refreshPageData, 60000);
+                    localStorage.setItem('autoRefresh', 'true');
+                    
+                    // 显示刷新状态
+                    if (lastUpdateTime) {
+                        lastUpdateTime.parentElement.innerHTML += ' <span class="refresh-note">(每分钟自动刷新)</span>';
+                    }
+                } else {
+                    // 关闭自动刷新
+                    if (autoRefreshInterval) {
+                        clearInterval(autoRefreshInterval);
+                        autoRefreshInterval = null;
+                    }
+                    localStorage.setItem('autoRefresh', 'false');
+                    
+                    // 移除刷新状态提示
+                    const refreshNote = document.querySelector('.refresh-note');
+                    if (refreshNote) {
+                        refreshNote.remove();
+                    }
+                }
+            });
+            
+            // 只在管理页面才开启自动刷新
+            if (window.location.pathname.includes('/manage/') && localStorage.getItem('autoRefresh') === 'true') {
+                autoRefreshCheckbox.checked = true;
+                autoRefreshCheckbox.dispatchEvent(new Event('change'));
+            } else {
+                // 默认不开启自动刷新
+                autoRefreshCheckbox.checked = false;
+            }
+        }
+        
+        // 初始化时更新刷新时间
+        updateLastRefreshTime();
         
         // 显示确认删除模态框
         deleteButton.addEventListener('click', function() {
@@ -368,10 +573,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert(data.error || '删除失败');
                         confirmModal.classList.remove('show');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('请求失败，请稍后重试');
+                })                .catch(error => {
+                    alert('删除请求失败: ' + error.message);
                     confirmModal.classList.remove('show');
                 });
             });

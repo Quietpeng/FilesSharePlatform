@@ -19,16 +19,16 @@
                     </label>
                     <div id="file-list" class="file-list"></div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="expiry-days">有效期（天）：</label>
-                    <select id="expiry-days" name="expiry_days">
-                        <option value="1">1天</option>
-                        <option value="3">3天</option>
-                        <option value="7" selected>7天</option>
-                        <option value="14">14天</option>
-                        <option value="30">30天</option>
-                    </select>
+                  <div class="form-group">
+                    <label>有效期：</label>                <div class="expiry-input">
+                        <input type="number" id="expiry-value" name="expiry_value" min="1" max="10" value="{{ config.time_limits.default_expiry_minutes if config else 10 }}" class="expiry-number">
+                        <select id="expiry-unit" name="expiry_unit">
+                            <option value="minutes" selected>分钟</option>
+                            <option value="hours">小时</option>
+                            <option value="days">天</option>
+                        </select>
+                    </div>
+                    <p class="form-hint">最短{{ config.time_limits.min_expiry_minutes if config else 1 }}分钟，最长{{ config.time_limits.max_expiry_days if config else 10 }}天</p>
                 </div>
                 
                 <div class="form-group">
