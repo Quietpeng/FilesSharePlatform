@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件取件 - 文件共享平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>文件取件</h1>
+        
+        <div class="pickup-container">
+            <div id="pickup-form-container">
+                <form id="pickup-form">
+                    <div class="form-group">
+                        <label for="pickup-code">取件码：</label>
+                        <input type="text" id="pickup-code" name="pickup_code" placeholder="请输入6位取件码" maxlength="6" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">查询文件</button>
+                        <a href="/" class="btn secondary-btn">返回主页</a>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="files-container" class="files-container hide">
+                <h2>可下载的文件</h2>
+                <div id="file-list" class="file-list-download"></div>
+                
+                <div class="download-options">
+                    <button id="download-all" class="btn primary-btn">下载全部</button>
+                    <a href="/pickup" class="btn secondary-btn">返回</a>
+                </div>
+                
+                <div id="download-progress" class="progress-container hide">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">下载中 (0%)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>文件共享平台 &copy; 2025</p>
+    </footer>
+    
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

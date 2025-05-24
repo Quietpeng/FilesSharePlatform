@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传文件 - 文件共享平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>上传文件</h1>
+        
+        <div class="upload-container">
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file-upload" class="file-label">
+                        <span>选择文件</span>
+                        <input type="file" id="file-upload" name="files[]" multiple required>
+                    </label>
+                    <div id="file-list" class="file-list"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiry-days">有效期（天）：</label>
+                    <select id="expiry-days" name="expiry_days">
+                        <option value="1">1天</option>
+                        <option value="3">3天</option>
+                        <option value="7" selected>7天</option>
+                        <option value="14">14天</option>
+                        <option value="30">30天</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max-downloads">最大下载次数：</label>
+                    <select id="max-downloads" name="max_downloads">
+                        <option value="0">不限制</option>
+                        <option value="1">1次</option>
+                        <option value="3">3次</option>
+                        <option value="5">5次</option>
+                        <option value="10">10次</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn primary-btn">上传文件</button>
+                    <a href="/" class="btn secondary-btn">返回主页</a>
+                </div>
+            </form>
+            
+            <div id="upload-progress" class="progress-container hide">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text">上传中 (0%)</div>
+            </div>
+            
+            <div id="upload-result" class="upload-result hide">
+                <h3>上传成功！</h3>
+                <div class="result-info">
+                    <div class="info-row">
+                        <span class="info-label">取件码：</span>
+                        <span id="pickup-code" class="info-value code"></span>
+                        <button id="copy-code" class="btn small-btn">复制</button>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">管理地址：</span>
+                        <a id="management-url" class="info-value link" target="_blank"></a>
+                    </div>
+                </div>
+                <p class="result-note">请保存好取件码和管理地址，它们将不再显示</p>
+                <div class="form-actions">
+                    <button id="reset-upload" class="btn secondary-btn">继续上传</button>
+                    <a href="/" class="btn primary-btn">返回主页</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>文件共享平台 &copy; 2025</p>
+    </footer>
+    
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

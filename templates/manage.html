@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件管理 - 文件共享平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>文件管理</h1>
+        
+        <div class="manage-container">
+            <div class="info-panel">
+                <h3>文件组信息</h3>
+                <div class="info-row">
+                    <span class="info-label">取件码：</span>
+                    <span class="info-value code">{{ file_group.pickup_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">创建时间：</span>
+                    <span class="info-value">{{ file_group.created_at[:16].replace('T', ' ') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">过期时间：</span>
+                    <span class="info-value">{{ file_group.expiry_date[:16].replace('T', ' ') if file_group.expiry_date else '永不过期' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">下载限制：</span>
+                    <span class="info-value">{{ file_group.max_downloads if file_group.max_downloads else '不限制' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">已下载次数：</span>
+                    <span class="info-value">{{ file_group.download_count }}</span>
+                </div>
+            </div>
+            
+            <div class="files-panel">
+                <h3>文件列表</h3>
+                <div class="file-table-container">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>文件名</th>
+                                <th>大小</th>
+                                <th>上传时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in file_group.files %}
+                            <tr>
+                                <td>{{ file.name }}</td>
+                                <td>{{ (file.size / 1024)|round(1) }} KB</td>
+                                <td>{{ file.upload_time[:16].replace('T', ' ') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="history-panel">
+                <h3>下载记录</h3>
+                <div class="file-table-container">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>文件名</th>
+                                <th>下载时间</th>
+                                <th>IP地址</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for download in file_group.download_history %}
+                            <tr>
+                                <td>{{ download.filename }}</td>
+                                <td>{{ download.time[:16].replace('T', ' ') }}</td>
+                                <td>{{ download.ip }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not file_group.download_history %}
+                            <tr>
+                                <td colspan="3" class="no-data">暂无下载记录</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="manage-actions">
+                <button id="delete-files" class="btn danger-btn" data-id="{{ file_group_id }}">删除此文件组</button>
+                <a href="/" class="btn secondary-btn">返回主页</a>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>确认删除</h3>
+            <p>您确定要删除此文件组吗？删除后将无法恢复。</p>
+            <div class="modal-actions">
+                <button id="confirm-delete" class="btn danger-btn">确认删除</button>
+                <button id="cancel-delete" class="btn secondary-btn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>文件共享平台 &copy; 2025</p>
+    </footer>
+    
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
