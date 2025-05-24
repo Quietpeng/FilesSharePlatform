@@ -87,7 +87,7 @@ start.bat --help
 
 <img src="./static/img/微信截图1.png" alt="微信截图1" style="zoom: 67%;" />
 
-<img src="./../../../AppData/Roaming/Typora/typora-user-images/image-20250524154208416.png" alt="image-20250524154208416" style="zoom:67%;" />
+<img src="./static/img/微信截图2.png" alt="微信截图2" style="zoom: 67%;" />
 
 ## 内网穿透与远程访问
 
