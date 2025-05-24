@@ -25,6 +25,10 @@
 
 ## 安装与运行
 
+> [!CAUTION]
+>
+> 或者直接下载Releases里面的压缩包，解压后直接运行EXE文件（使用Nuikta打包的exe）
+
 ### 安装依赖
 
 ```bash
